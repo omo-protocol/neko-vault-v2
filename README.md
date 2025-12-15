@@ -17,12 +17,12 @@ A non-custodial, ERC-4626 compliant vault system for multi-protocol DeFi allocat
 
 ## Contracts to Review
 
-| Contract | Purpose | Priority |
-|----------|---------|----------|
-| [VaultV2.sol](./src/VaultV2.sol) | Main vault: deposits, withdrawals, roles, timelocks, fees | Critical |
-| [UniversalAdapterEscrow.sol](./src/UniversalAdapterEscrow.sol) | Strategy execution: allocation, whitelist multicall | Critical |
-| [UniversalValuerOffchain.sol](./src/UniversalValuerOffchain.sol) | Valuation oracle: multi-sig price updates | Critical |
-| [VaultV2Factory.sol](./src/VaultV2Factory.sol) | Vault deployment | Low |
+| Contract | Purpose |
+|----------|---------|
+| [VaultV2.sol](./src/VaultV2.sol) | Main vault: deposits, withdrawals, roles, timelocks, fees |
+| [UniversalAdapterEscrow.sol](./src/UniversalAdapterEscrow.sol) | Strategy execution: allocation, whitelist multicall |
+| [UniversalValuerOffchain.sol](./src/UniversalValuerOffchain.sol) | Valuation oracle: multi-sig price updates |
+| [VaultV2Factory.sol](./src/VaultV2Factory.sol) | Vault deployment |
 
 ---
 
