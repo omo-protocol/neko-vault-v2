@@ -16,4 +16,12 @@ via_ir = false
 [fuzz]
 runs = 2048
 
+[rpc_endpoints]
+hyperevm = "https://rpc.hyperliquid.xyz/evm"
+mantle = "https://rpc.mantle.xyz"
+
+[etherscan]
+hyperevm = { key = "${ETHERSCAN_API_KEY}", chain = 999, url = "https://api.hyperliquid.xyz/evm/explorer/api" }
+mantle = { key = "${MANTLESCAN_API_KEY}", chain = 5000, url = "https://api.mantlescan.xyz/api" }
+
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
