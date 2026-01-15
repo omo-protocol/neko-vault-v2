@@ -1,6 +1,6 @@
 # Neko Vault V2 - Deployment Guide
 
-This guide covers the complete deployment process for Neko Vault V2 on HyperEVM and Mantle networks.
+This guide covers the complete deployment process for Neko Vault V2 on Mantle network.
 
 ## Table of Contents
 
@@ -17,23 +17,16 @@ This guide covers the complete deployment process for Neko Vault V2 on HyperEVM 
 ## Prerequisites
 
 - **Foundry** installed (`curl -L https://foundry.paradigm.xyz | bash && foundryup`)
-- **Private key** with sufficient native tokens for gas
+- **Private key** with sufficient MNT tokens for gas
 - **Node.js** (optional, for off-chain keeper)
 
 ## Network Configuration
 
-Pre-configured networks in `foundry.toml`:
+Pre-configured network in `foundry.toml`:
 
 | Network | Chain ID | RPC URL | Explorer |
 |---------|----------|---------|----------|
-| HyperEVM | 999 | `https://rpc.hyperliquid.xyz/evm` | `https://api.hyperliquid.xyz/evm/explorer` |
 | Mantle | 5000 | `https://rpc.mantle.xyz` | `https://api.mantlescan.xyz` |
-
-### HyperEVM Special Requirements
-
-HyperEVM requires enabling "Big Block" feature for contracts >2M gas:
-1. Visit https://hyperevm-block-toggle.vercel.app/
-2. Connect wallet and enable Big Block for your deployer address
 
 ---
 
@@ -50,7 +43,7 @@ cp deployment/.env.example .env
 ```bash
 # Required for all deployments
 PRIVATE_KEY=0x...
-ASSET_ADDRESS=0x...           # ERC20 asset (e.g., WMNT, USDT)
+ASSET_ADDRESS=0x...           # ERC20 asset (e.g., USDT, USDe)
 KEEPER_ADDRESS=0x...          # Keeper for automated valuation
 ALLOCATOR_ADDRESS=0x...       # Address to grant allocator role
 
@@ -97,8 +90,8 @@ Step 2c: Configure Fees (optional)
 Step 2d: Configure Adapter
     └── Set strategy
 
-Step 2f: Configure Whitelists (Mantle only)
-    └── Whitelist protocol functions
+Step 2f: Configure Whitelists
+    └── Whitelist protocol functions (Lendle, Init Capital, Compound)
 ```
 
 ---
@@ -109,7 +102,7 @@ Step 2f: Configure Whitelists (Mantle only)
 
 ```bash
 forge script deployment/script/0a_DeployFactory.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -v
 ```
@@ -129,7 +122,7 @@ export KEEPER_ADDRESS=0x...
 export STRATEGY_NAME=my-strategy
 
 forge script deployment/script/0b_DeployValuer.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -v
 ```
@@ -149,7 +142,7 @@ export ASSET_ADDRESS=0x...
 export STRATEGY_NAME=my-strategy
 
 forge script deployment/script/1_DeployVault_Adapter.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -v
 ```
@@ -169,7 +162,7 @@ export ADAPTER_ADDRESS=0x...
 export ALLOCATOR_ADDRESS=0x...
 
 forge script deployment/script/2a_ConfigureVaultCore.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -v
 ```
@@ -185,7 +178,7 @@ export STRATEGY_NAME=my-strategy
 export RELATIVE_CAP=1000000000000000000  # Optional: 1e18 = 100%
 
 forge script deployment/script/2b_ConfigureCaps.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -v
 ```
@@ -203,7 +196,7 @@ export PERFORMANCE_FEE_RECIPIENT=0x...
 export PERFORMANCE_FEE=200000000000000000  # Optional: 0.2e18 = 20%
 
 forge script deployment/script/2c_ConfigureFees.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -v
 ```
@@ -219,16 +212,16 @@ export ALLOCATOR_ADDRESS=0x...
 export STRATEGY_NAME=my-strategy
 
 forge script deployment/script/2d_ConfigureAdapter.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -v
 ```
 
 ---
 
-### Step 2f: Configure Mantle Whitelists (Mantle Only)
+### Step 2f: Configure Whitelists
 
-**Only for Mantle network deployments.**
+Configure function whitelists for DeFi protocol interactions (Lendle, Init Capital, Compound V3).
 
 ```bash
 # Set required env vars
@@ -266,19 +259,19 @@ forge script deployment/script/2f_ConfigureMantleSupplyOptimizerWhitelist.s.sol 
 # Verify VaultV2
 forge verify-contract <VAULT_ADDRESS> \
   src/VaultV2.sol:VaultV2 \
-  --chain-id 999 \
+  --chain-id 5000 \
   --num-of-optimizations 100000 \
   --constructor-args $(cast abi-encode 'constructor(address,address)' <OWNER> <ASSET>) \
-  --etherscan-api-key $ETHERSCAN_API_KEY \
+  --etherscan-api-key $MANTLESCAN_API_KEY \
   --compiler-version 0.8.28
 
 # Verify UniversalAdapterEscrow
 forge verify-contract <ADAPTER_ADDRESS> \
   src/UniversalAdapterEscrow.sol:UniversalAdapterEscrow \
-  --chain-id 999 \
+  --chain-id 5000 \
   --num-of-optimizations 100000 \
   --constructor-args $(cast abi-encode 'constructor(address,address,bool)' <VAULT> <VALUER> false) \
-  --etherscan-api-key $ETHERSCAN_API_KEY \
+  --etherscan-api-key $MANTLESCAN_API_KEY \
   --compiler-version 0.8.28
 ```
 
@@ -286,14 +279,14 @@ forge verify-contract <ADAPTER_ADDRESS> \
 
 ```bash
 # Check vault adapter
-cast call $VAULT_ADDRESS "adapters(address)(bool)" $ADAPTER_ADDRESS --rpc-url hyperevm
+cast call $VAULT_ADDRESS "adapters(address)(bool)" $ADAPTER_ADDRESS --rpc-url mantle
 
 # Check allocator
-cast call $VAULT_ADDRESS "isAllocator(address)(bool)" $ALLOCATOR_ADDRESS --rpc-url hyperevm
+cast call $VAULT_ADDRESS "isAllocator(address)(bool)" $ALLOCATOR_ADDRESS --rpc-url mantle
 
 # Check caps
 STRATEGY_HASH=$(cast keccak "my-strategy")
-cast call $VAULT_ADDRESS "caps(bytes32)(uint256,uint256)" $STRATEGY_HASH --rpc-url hyperevm
+cast call $VAULT_ADDRESS "caps(bytes32)(uint256,uint256)" $STRATEGY_HASH --rpc-url mantle
 ```
 
 ---
@@ -305,9 +298,6 @@ cast call $VAULT_ADDRESS "caps(bytes32)(uint256,uint256)" $STRATEGY_HASH --rpc-u
 **"PRIVATE_KEY must be set"**
 - Ensure `.env` is loaded: `source .env`
 - Check variable is exported: `echo $PRIVATE_KEY`
-
-**"Out of gas" on HyperEVM**
-- Enable Big Block at https://hyperevm-block-toggle.vercel.app/
 
 **"Adapter not in vault"**
 - Run Step 2a before Steps 2b-2d
@@ -323,7 +313,7 @@ Test scripts without sending transactions:
 
 ```bash
 forge script deployment/script/1_DeployVault_Adapter.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   -vvvv
 # Note: no --broadcast flag
 ```
@@ -334,7 +324,7 @@ Add verbosity for detailed traces:
 
 ```bash
 forge script deployment/script/1_DeployVault_Adapter.s.sol \
-  --rpc-url hyperevm \
+  --rpc-url mantle \
   --broadcast \
   -vvvv
 ```
@@ -343,7 +333,7 @@ forge script deployment/script/1_DeployVault_Adapter.s.sol \
 
 ## Quick Start Example
 
-Complete deployment on HyperEVM:
+Complete deployment on Mantle:
 
 ```bash
 # 1. Setup
@@ -352,27 +342,30 @@ cp deployment/.env.example .env
 source .env
 
 # 2. Deploy factories (if not already deployed)
-forge script deployment/script/0a_DeployFactory.s.sol --rpc-url hyperevm --broadcast -v
+forge script deployment/script/0a_DeployFactory.s.sol --rpc-url mantle --broadcast -v
 
 # 3. Deploy valuer
-export ASSET_ADDRESS=0xdEAddEaDdeadDEadDEADDEAddEADDEAddead1111  # WMNT
+export ASSET_ADDRESS=0x201EBa5CC46D216Ce6DC03F6a759e8E766e956aE  # USDT on Mantle
 export KEEPER_ADDRESS=0x...
 export STRATEGY_NAME=my-vault-strategy
-forge script deployment/script/0b_DeployValuer.s.sol --rpc-url hyperevm --broadcast -v
+forge script deployment/script/0b_DeployValuer.s.sol --rpc-url mantle --broadcast -v
 
 # 4. Deploy vault & adapter (update env vars with outputs from previous steps)
 export VAULT_FACTORY_ADDRESS=0x...
 export ADAPTER_FACTORY_ADDRESS=0x...
 export VALUER_ADDRESS=0x...
-forge script deployment/script/1_DeployVault_Adapter.s.sol --rpc-url hyperevm --broadcast -v
+forge script deployment/script/1_DeployVault_Adapter.s.sol --rpc-url mantle --broadcast -v
 
 # 5. Configure vault (update env vars with outputs)
 export VAULT_ADDRESS=0x...
 export ADAPTER_ADDRESS=0x...
 export ALLOCATOR_ADDRESS=0x...
-forge script deployment/script/2a_ConfigureVaultCore.s.sol --rpc-url hyperevm --broadcast -v
-forge script deployment/script/2b_ConfigureCaps.s.sol --rpc-url hyperevm --broadcast -v
-forge script deployment/script/2d_ConfigureAdapter.s.sol --rpc-url hyperevm --broadcast -v
+forge script deployment/script/2a_ConfigureVaultCore.s.sol --rpc-url mantle --broadcast -v
+forge script deployment/script/2b_ConfigureCaps.s.sol --rpc-url mantle --broadcast -v
+forge script deployment/script/2d_ConfigureAdapter.s.sol --rpc-url mantle --broadcast -v
+
+# 6. Configure whitelists for protocol interactions
+forge script deployment/script/2f_ConfigureMantleSupplyOptimizerWhitelist.s.sol --rpc-url mantle --broadcast -v
 
 # Done! Vault is ready for deposits and allocations.
 ```
