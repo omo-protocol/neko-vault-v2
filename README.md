@@ -192,3 +192,4 @@ No proxy patterns or upgrade mechanisms. The deployed code cannot be changed, el
 | [UNIVERSAL_ADAPTER.md](./docs/UNIVERSAL_ADAPTER.md) | Adapter system documentation |
 | [UNIVERSAL_VALUER_OFFCHAIN.md](./docs/UNIVERSAL_VALUER_OFFCHAIN.md) | Valuation oracle specification |
 | [PPS_CALCULATION.md](./docs/PPS_CALCULATION.md) | Price per share calculation |
+| [DEPLOYMENT.md](./deployment/DEPLOYMENT.md) | Deployment guide |
